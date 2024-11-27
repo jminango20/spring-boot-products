@@ -1,0 +1,8 @@
+package com.jminango.dscatalog.resources.exceptions;
+
+public class StandartError {
+
+    
+
+
+}
