@@ -1,6 +1,5 @@
 package com.jminango.dscatalog.resources.exceptions;
 
-import com.jminango.dscatalog.services.exceptions.DataBaseException;
 import com.jminango.dscatalog.services.exceptions.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -15,28 +14,16 @@ public class ResourceExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<StandartError> entityNotFound(ResourceNotFoundException e, HttpServletRequest request) {
-        HttpStatus status = HttpStatus.NOT_FOUND;
+
         StandartError err = new StandartError();
         err.setTimestamp(Instant.now());
-        err.setStatus(status.value());
+        err.setStatus(HttpStatus.NOT_FOUND.value());
         err.setError(e.getMessage());
         err.setPath(request.getRequestURI());
 
-        return ResponseEntity.status(status).body(err);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
+
     }
-
-    @ExceptionHandler(DataBaseException.class)
-    public ResponseEntity<StandartError> dataBase(DataBaseException e, HttpServletRequest request) {
-        HttpStatus status = HttpStatus.BAD_REQUEST;
-        StandartError err = new StandartError();
-        err.setTimestamp(Instant.now());
-        err.setStatus(status.value());
-        err.setError(e.getMessage());
-        err.setPath(request.getRequestURI());
-
-        return ResponseEntity.status(status).body(err);
-    }
-
 
 
 }
