@@ -1,6 +1,6 @@
 package com.jminango.dscatalog.resources.exceptions;
 
-import com.jminango.dscatalog.services.exceptions.EntityNotFoundException;
+import com.jminango.dscatalog.services.exceptions.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,8 +12,8 @@ import java.time.Instant;
 @ControllerAdvice
 public class ResourceExceptionHandler {
 
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<StandartError> entityNotFound(EntityNotFoundException e, HttpServletRequest request) {
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<StandartError> entityNotFound(ResourceNotFoundException e, HttpServletRequest request) {
 
         StandartError err = new StandartError();
         err.setTimestamp(Instant.now());
