@@ -87,6 +87,10 @@ public class Product {
         return date;
     }
 
+    public void setDate(Instant date) {
+        this.date = date;
+    }
+
     public Set<Category> getCategories() {
         return categories;
     }

@@ -1,7 +1,10 @@
 package com.jminango.dscatalog.services;
 
+import com.jminango.dscatalog.dto.CategoryDto;
 import com.jminango.dscatalog.dto.ProductDto;
+import com.jminango.dscatalog.entities.Category;
 import com.jminango.dscatalog.entities.Product;
+import com.jminango.dscatalog.repositories.CategoryRepository;
 import com.jminango.dscatalog.repositories.ProductRepository;
 import com.jminango.dscatalog.services.exceptions.DataBaseException;
 import com.jminango.dscatalog.services.exceptions.ResourceNotFoundException;
@@ -22,6 +25,9 @@ public class ProductService {
     @Autowired
     ProductRepository repository;
 
+    @Autowired
+    CategoryRepository categoryRepository;
+
     @Transactional(readOnly = true)
     public Page<ProductDto> findAllPaginated(PageRequest pageRequest) {
         Page<Product> list = repository.findAll(pageRequest);
@@ -36,18 +42,18 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductDto insert(ProductDto categoryDto) {
+    public ProductDto insert(ProductDto productDto) {
         Product entity = new Product();
-        entity.setName(categoryDto.getName());
+        productDTOtoEntity(productDto, entity);
         entity = repository.save(entity);
         return new ProductDto(entity);
     }
 
     @Transactional
-    public ProductDto update(Long id, ProductDto categoryDto) {
+    public ProductDto update(Long id, ProductDto productDto) {
         try {
             Product entity = repository.getOne(id);
-            entity.setName(categoryDto.getName());
+            productDTOtoEntity(productDto, entity);
             entity = repository.save(entity);
             return new ProductDto(entity);
         } catch (EntityNotFoundException e) {
@@ -62,6 +68,22 @@ public class ProductService {
             throw new ResourceNotFoundException("Id not found " + id);
         } catch (DataIntegrityViolationException e) {
             throw new DataBaseException("Integrity violation");
+        }
+    }
+
+    private void productDTOtoEntity(ProductDto productDto, Product entity) {
+        entity.setName(productDto.getName());
+        entity.setDescription(productDto.getDescription());
+        entity.setPrice(productDto.getPrice());
+        entity.setImgUrl(productDto.getImgUrl());
+        entity.setDate(productDto.getDate());
+
+        entity.getCategories().clear();
+
+        for (CategoryDto catDto : productDto.getCategories()) {
+             Category category = categoryRepository.getOne(catDto.getId());
+             category.setName(catDto.getName());
+             entity.getCategories().add(category);
         }
     }
 }
