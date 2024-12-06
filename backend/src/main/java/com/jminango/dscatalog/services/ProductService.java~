@@ -42,18 +42,18 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductDto insert(ProductDto categoryDto) {
+    public ProductDto insert(ProductDto productDto) {
         Product entity = new Product();
-        productDTOtoEntity(categoryDto, entity);
+        productDTOtoEntity(productDto, entity);
         entity = repository.save(entity);
         return new ProductDto(entity);
     }
 
     @Transactional
-    public ProductDto update(Long id, ProductDto categoryDto) {
+    public ProductDto update(Long id, ProductDto productDto) {
         try {
             Product entity = repository.getOne(id);
-            entity.setName(categoryDto.getName());
+            productDTOtoEntity(productDto, entity);
             entity = repository.save(entity);
             return new ProductDto(entity);
         } catch (EntityNotFoundException e) {
