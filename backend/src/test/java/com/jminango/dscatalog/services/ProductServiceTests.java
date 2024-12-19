@@ -16,7 +16,9 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -53,6 +55,9 @@ public class ProductServiceTests {
         Mockito.when(repository.findById(existingId)).thenReturn(Optional.of(product));
         Mockito.when(repository.findById(nonExistentId)).thenReturn(Optional.empty());
 
+        Mockito.when(repository.getOne(existingId)).thenReturn(product);
+        Mockito.when(repository.getOne(nonExistentId)).thenThrow(ResourceNotFoundException.class);
+
         Mockito.doNothing().when(repository).deleteById(existingId);
         Mockito.doThrow(EmptyResultDataAccessException.class).when(repository).deleteById(nonExistentId);
         Mockito.doThrow(DataIntegrityViolationException.class).when(repository).deleteById(dependencyId);
@@ -86,6 +91,44 @@ public class ProductServiceTests {
         });
 
         Mockito.verify(repository, Mockito.times(1)).deleteById(dependencyId);
+    }
+
+    @Test
+    public void findAllPagedShouldReturnPage() {
+        Pageable pageable = PageRequest.of(0, 10);
+
+        Page<ProductDto> result = service.findAllPaginated(pageable);
+
+        Assertions.assertNotNull(result);
+
+        Mockito.verify(repository, Mockito.times(1)).findAll(pageable);
+
+    }
+
+    @Test
+    public void findByIdShouldReturnProductDtoWhenIdExists() {
+        ProductDto result = service.findById(existingId);
+        Assertions.assertNotNull(result);
+        Assertions.assertEquals(existingId, result.getId());
+        Mockito.verify(repository, Mockito.times(1)).findById(existingId);
+    }
+
+    @Test
+    public void findByIdShouldThrowResourceNotFoundExceptionWhenIdDoesNotExist() {
+        Assertions.assertThrows(ResourceNotFoundException.class, () -> {
+            service.findById(nonExistentId);
+        });
+        Mockito.verify(repository, Mockito.times(1)).findById(nonExistentId);
+    }
+
+    @Test
+    public void saveShouldPersistWithAutoincrementWhenIdIsNull() {
+
+        Product product = new Product();
+        ProductDto productDto = new ProductDto(product, product.getCategories());
+        ProductDto result = service.insert(productDto);
+        Assertions.assertNotNull(result.getId());
+        Mockito.verify(repository, Mockito.times(1)).save(product);
     }
 
 }
