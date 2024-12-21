@@ -1,6 +1,7 @@
 package com.jminango.dscatalog.resources;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jminango.dscatalog.dto.ProductDto;
 import com.jminango.dscatalog.services.ProductService;
 import com.jminango.dscatalog.services.exceptions.ResourceNotFoundException;
@@ -18,7 +19,9 @@ import org.springframework.test.web.servlet.ResultActions;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -29,6 +32,9 @@ public class ProductResourceTests {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @MockitoBean
     private ProductService service;
@@ -51,6 +57,9 @@ public class ProductResourceTests {
 
         when(service.findById(existingId)).thenReturn(productDto);
         when(service.findById(nonExistentId)).thenThrow(ResourceNotFoundException.class);
+
+        when(service.update(eq(existingId), any())).thenReturn(productDto);
+        when(service.update(eq(nonExistentId), any())).thenThrow(ResourceNotFoundException.class);
     }
 
     @Test
@@ -77,6 +86,33 @@ public class ProductResourceTests {
                 .accept(MediaType.APPLICATION_JSON));
 
         result.andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void updateShouldReturnProductDtoWhenIdExists() throws Exception {
+        String jsonBody = objectMapper.writeValueAsString(productDto);
+
+        ResultActions result = mockMvc.perform(put("/products/{id}", existingId)
+                .content(jsonBody)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON));
+
+        result.andExpect(status().isOk());
+        result.andExpect(jsonPath("$.id").value(existingId));
+        result.andExpect(jsonPath("$.name").value(productDto.getName()));
+    }
+
+    @Test
+    public void updateShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
+        String jsonBody = objectMapper.writeValueAsString(productDto);
+
+        ResultActions result = mockMvc.perform(put("/products/{id}", nonExistentId)
+                .content(jsonBody)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON));
+
+        result.andExpect(status().isNotFound());
+
     }
 
 }
